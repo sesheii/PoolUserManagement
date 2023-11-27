@@ -6,37 +6,8 @@ from api.serializers import UserSerializer
 from rest_framework import status
 
 
-# @api_view(['GET'])
-# def getUsers(request):
-#     users = User.objects.all()
-#     serializer = UserSerializer(users, many=True)
-#     return Response(serializer.data)
-#     # return JsonResponse(serializer.data, safe=False)
-#
-#
-# @api_view(['GET'])
-# def getUser(request, user_id):
-#     try:
-#         user = User.objects.get(id=user_id)
-#     except User.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-#
-#     serializer = UserSerializer(user)
-#     return Response(serializer.data)
-#
-#
-# @api_view(['POST'])
-# def addUser(request):
-#     serializer = UserSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#         return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
 @api_view(['POST', 'GET'])
-def CreateUsers(request):
+def CreateUsers(request, format=None):
     if request.method == 'POST':
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -50,7 +21,7 @@ def CreateUsers(request):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def Users(request, user_id):
+def Users(request, user_id, format=None):
     try:
         user = User.objects.get(id=user_id)
     except User.DoesNotExist:
