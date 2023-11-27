@@ -9,6 +9,7 @@ from api import viewsets as api_viewsets
 
 router = SimpleRouter()
 router.register(r'Users', api_viewsets.UserViewSet, basename='User')
+router.register(r'MembershipTypes', api_viewsets.MembershipTypeViewSet, basename='MembershipType')
 
 urlpatterns = [
     # path('getUsers/', api_views.getUsers),
