@@ -10,3 +10,10 @@ class User(models.Model):
 
     def __str__(self):
         return self.first_name + ' ' + self.second_name
+
+
+class MembershipType(models.Model):
+    interval_start = models.TimeField()
+    interval_end = models.TimeField()
+
+    interval_end = models.TimeField()
