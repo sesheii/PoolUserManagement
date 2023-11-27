@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import User, MembershipType
+from api.models import User, MembershipType, MedicalClearance
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -11,4 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
 class MembershipTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MembershipType
+        fields = '__all__'
+
+
+class MedicalClearanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MedicalClearance
         fields = '__all__'

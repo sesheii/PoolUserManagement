@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 
-from api.models import User, MembershipType
-from api.serializers import UserSerializer, MembershipTypeSerializer
+from api.models import User, MembershipType, MedicalClearance
+from api.serializers import UserSerializer, MembershipTypeSerializer, MedicalClearanceSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -12,3 +12,8 @@ class UserViewSet(viewsets.ModelViewSet):
 class MembershipTypeViewSet(viewsets.ModelViewSet):
     queryset = MembershipType.objects.all()
     serializer_class = MembershipTypeSerializer
+
+
+class MedicalClearanceTypeViewSet(viewsets.ModelViewSet):
+    queryset = MedicalClearance.objects.all()
+    serializer_class = MedicalClearanceSerializer
