@@ -1,11 +1,14 @@
+from datetime import timedelta
 from django.db import models
 
 
 class MembershipType(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
-    duration = models.TimeField()
+    duration = models.IntegerField()
     price = models.FloatField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
 
     def __str__(self):
         return f'{self.name}; {self.description}; {self.duration}; {self.price} грн'
@@ -18,7 +21,7 @@ class User(models.Model):
     memberships = models.ManyToManyField(MembershipType, through='UserMembership')
 
     def __str__(self):
-        return f'{self.full_name}; {self.email}, {"заблокований" if self.full_name else "все ок"}'
+        return f'{self.full_name}; {self.email}, {"заблокований" if self.is_blocked else "не заблокований"}'
 
 
 class UserMembership(models.Model):
@@ -34,7 +37,7 @@ class UserMembership(models.Model):
 class CheckInCheckOut(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     check_in_time = models.DateTimeField()
-    check_out_time = models.DateTimeField()
+    check_out_time = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f'Час входу: {self.check_in_time}, час виходу: {self.check_out_time}'
