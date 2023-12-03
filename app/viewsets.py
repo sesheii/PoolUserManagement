@@ -15,8 +15,16 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class UserMembershipViewSet(viewsets.ModelViewSet):
-    queryset = UserMembership.objects.all()
     serializer_class = UserMembershipSerializer
+
+    def get_queryset(self):
+        queryset = UserMembership.objects.all()
+        user_id = self.kwargs.get('pk', None)
+
+        if user_id is not None:
+            queryset = queryset.filter(user_id=user_id)
+
+        return queryset
 
 
 class CheckInCheckOutViewSet(viewsets.ModelViewSet):

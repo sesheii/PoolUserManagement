@@ -1,0 +1,17 @@
+.header {
+  width: 100%;
+  height: auto;
+  background-color: #f2f2f2;
+  padding: 10px;
+  text-align: center;
+}
+
+.custom-button {
+  background-color: #4CAF50;
+  color: white;
+}
+.custom-button:hover {
+  background-color: #45a049;
+}
+
+/*# sourceMappingURL=test.css.map */

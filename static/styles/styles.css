@@ -1,0 +1,40 @@
+body {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.container {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+  background-color: white;
+  padding: 20px;
+  border-radius: 0.3rem;
+}
+
+.card {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+.card .card-title {
+  color: #007bff;
+}
+
+.list-group-item {
+  transition: all 0.3s ease-in-out;
+}
+.list-group-item:hover {
+  background-color: #a4a4a4;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
+
+/*# sourceMappingURL=styles.css.map */

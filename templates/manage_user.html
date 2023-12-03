@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage User</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'styles/styles.css' %}">
+</head>
+<body class="bg-light">
+<div class="container mt-5">
+    <h1 class="mb-4">Користувач</h1>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <div class="form-group">
+            {{ form.user_id.label_tag }}
+            {{ form.user_id }}
+            <input type="submit" value="Отримати дані користувача" class="btn btn-primary">
+        </div>
+    </form>
+
+    {% if user_data %}
+        <div class="card card-body">
+            <h2 class="card-title">Деталі</h2>
+            <p class="card-text">ID: {{ user_data.id }}</p>
+            <p class="card-text">Повне ім'я: {{ user_data.full_name }}</p>
+            <p class="card-text">Електронна пошта: {{ user_data.email }}</p>
+            <p class="card-text">Стан:
+                <span class="badge {% if user_data.is_blocked %}badge-danger{% else %}badge-success{% endif %}">
+                        {% if user_data.is_blocked %}заблокований{% else %}не заблокований{% endif %}
+                    </span>
+            </p>
+
+            <h3 class="mt-3">Активні підписки</h3>
+            {% if user_memberships %}
+                <ul class="list-group mb-4">
+                    {% for membership in user_memberships %}
+                        <li class="list-group-item">
+                            {{ membership.membership_type.name }} ({{ membership.start_date }}
+                            - {{ membership.end_date }})
+                            <br>Графік: {{ membership.membership_type.start_time }}
+                            - {{ membership.membership_type.end_time }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Немає підписок</p>
+            {% endif %}
+
+            <form method="post" class="mb-4">
+                {% csrf_token %}
+                <h4>Присвоїти нову підписку:</h4>
+                <div class="form-group">
+                    {{ assign_membership_form.membership_type.label_tag }}
+                    {{ assign_membership_form.membership_type }}
+                </div>
+                <input type="submit" name="assign_membership" value="Присвоїти підписку" class="btn btn-secondary">
+            </form>
+
+            <h3 class="mt-3">Історія підписок</h3>
+            {% if all_user_memberships %}
+                <ul class="list-group mb-4">
+                    {% for membership in all_user_memberships %}
+                        <li class="list-group-item">
+                            {{ membership.membership_type.name }} ({{ membership.start_date }}
+                            - {{ membership.end_date }})
+                            {% if membership.end_date < now %}
+                                <span class="badge badge-secondary">Протерміновано</span>{% endif %}
+                            <br>Графік: {{ membership.membership_type.start_time }}
+                            - {{ membership.membership_type.end_time }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-muted">Історія підписок відсутня</p>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            <h2 class="alert-heading">Увага!</h2>
+            <p>Введіть у поле ID клієнта, що існує.</p>
+        </div>
+    {% endif %}
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
