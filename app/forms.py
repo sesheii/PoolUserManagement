@@ -8,3 +8,9 @@ class UserForm(forms.Form):
 
 class AssignMembershipForm(forms.Form):
     membership_type = forms.ModelChoiceField(queryset=MembershipType.objects.all(), empty_label="Виберіть тип підписки")
+
+
+class MembershipForm(forms.ModelForm):
+    class Meta:
+        model = MembershipType
+        fields = ['name', 'description', 'duration', 'price', 'start_time', 'end_time']

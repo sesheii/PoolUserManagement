@@ -12,6 +12,6 @@ router.register(r'check_in_check_outs', app_viewsets.CheckInCheckOutViewSet, bas
 urlpatterns = [
     path('', app_views.main, name='main'),
     path('manage-user-memberships', app_views.manage_user_memberships, name='manage-user-memberships'),
-    path('manage-membership', app_views.manage_membership, name='manage-membership'),
+    path('manage-memberships', app_views.manage_memberships, name='manage-memberships'),
     path('user_memberships/<int:pk>/', app_viewsets.UserMembershipViewSet.as_view({'get': 'list'}), name='user-membership-detail')
 ] + router.get_urls()
