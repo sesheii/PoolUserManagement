@@ -129,7 +129,7 @@ def check_in_check_out(request):
                     alert_class = "danger"
                 else:
                     CheckInCheckOut.objects.create(user=user_data, check_in_time=timezone.now())
-                    alert_message = "Check-in session created successfully"
+                    alert_message = "успішний check-in"
                     alert_class = "success"
 
             if 'check_out_session' in request.POST:
