@@ -24,6 +24,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'manage-memberships' %}">Підписки</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'check-in-check-out' %}">check-in check-out</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -56,7 +59,7 @@
                 {% for membership in user_memberships %}
                     <li class="list-group-item">
                         {{ membership.membership_type.name }} 
-                        <br>Термін дії: ({{ membership.start_date|date:"d.m.Y" }} - {{ membership.end_date|date:"d.m.Y" }})
+                        <br>Термін дії: {{ membership.start_date|date:"d.m.Y" }} - {{ membership.end_date|date:"d.m.Y" }}
                         <br>Графік: {{ membership.membership_type.start_time|time:"H:i" }}
                         - {{ membership.membership_type.end_time|time:"H:i" }}
                         

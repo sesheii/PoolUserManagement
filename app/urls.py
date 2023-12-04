@@ -13,5 +13,6 @@ urlpatterns = [
     path('', app_views.main, name='main'),
     path('manage-user-memberships', app_views.manage_user_memberships, name='manage-user-memberships'),
     path('manage-memberships', app_views.manage_memberships, name='manage-memberships'),
+    path('check-in-check-out', app_views.check_in_check_out, name='check-in-check-out'),
     path('user_memberships/<int:pk>/', app_viewsets.UserMembershipViewSet.as_view({'get': 'list'}), name='user-membership-detail')
 ] + router.get_urls()
