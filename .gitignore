@@ -6,6 +6,7 @@ db.sqlite3
 
 # PyCharm .idea folder and IDE-specific project files
 __pycache__/
+app/__pycache__
 **/.idea/
 **/virtenv/
 __pycache__/

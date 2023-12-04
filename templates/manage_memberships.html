@@ -53,7 +53,7 @@
                     <div>
                         <h5 class="mb-1">{{ membership.name }}</h5>
                         <p>{{ membership.description }}</p>
-                        <small>Тривалість: {{ membership.duration_days }} днів, Ціна: {{ membership.price }} грн.</small>
+                        <small>Тривалість: {{ membership.duration }} днів, Ціна: {{ membership.price }} грн.</small>
                         <small>Час: {{ membership.start_time|time:"H:i" }} - {{ membership.end_time|time:"H:i" }}</small>
                     </div>
                     <form method="post" style="display:inline;">
