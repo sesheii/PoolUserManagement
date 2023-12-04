@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from app.forms import UserForm, AssignMembershipForm, MembershipForm
+from app.forms import UserForm, AssignMembershipForm, MembershipForm, UserRegistrationForm
 from django.utils import timezone
 from app.models import User, UserMembership, MembershipType, CheckInCheckOut
 from datetime import timedelta
@@ -106,7 +106,6 @@ def manage_memberships(request):
         'memberships': memberships
     })
 
-from django.shortcuts import redirect
 
 def check_in_check_out(request):
     user_data = None
@@ -115,10 +114,9 @@ def check_in_check_out(request):
     alert_message = None
     alert_class = None
 
-    # Retrieve or set user_id from/in the session
     user_id = request.POST.get('user_id') or request.session.get('user_id')
     if user_id:
-        request.session['user_id'] = user_id  # Store/update user_id in the session
+        request.session['user_id'] = user_id
         user_data = User.objects.filter(id=user_id).first()
 
         if user_data:
@@ -141,7 +139,7 @@ def check_in_check_out(request):
                 session.save()
 
     return render(request, 'check_in_check_out.html', {
-        'user_id': user_id,  # Pass the user_id to the template
+        'user_id': user_id,
         'user_data': user_data,
         'all_sessions': all_sessions,
         'active_sessions': active_sessions,
@@ -149,3 +147,26 @@ def check_in_check_out(request):
         'alert_class': alert_class
     })
 
+
+def register_user(request):
+    if request.method == 'POST':
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            new_user = form.save()
+            request.session['user_id'] = new_user.id
+
+            return redirect('manage-user-memberships')
+    else:
+        form = UserRegistrationForm()
+
+    return render(request, 'register_user.html', {'form': form})
+
+
+def view_users(request):
+    query = request.GET.get('query', '')
+    users = User.objects.all()
+
+    if query:
+        users = users.filter(full_name__icontains=query) | users.filter(email__icontains=query)
+
+    return render(request, 'view_users.html', {'users': users, 'query': query})
