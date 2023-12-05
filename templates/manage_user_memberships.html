@@ -42,9 +42,9 @@
     <form method="post" class="mb-4">
         {% csrf_token %}
         <div class="form-group">
-            {{ form }}
-            {% comment %} {{ form|crispy }} {% endcomment %}
-            <input type="submit" value="Отримати дані користувача" class="btn btn-primary">
+            {% comment %} {{ form }} {% endcomment %}
+            {{ form|crispy }}
+            <input type="submit" value="Отримати дані користувача" class="btn btn-primary" name="submit_button">
         </div>
     </form>
 

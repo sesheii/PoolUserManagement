@@ -14,13 +14,13 @@ def manage_user_memberships(request):
     user_memberships = None
     all_user_memberships = None
     user_id = request.session.get('user_id', None)
+    assign_membership_form = AssignMembershipForm()
 
-    if request.method == 'POST':
+    if request.method == 'POST' and 'submit_button' in request.POST:
         form = UserForm(request.POST)
     else:
         form = UserForm(initial={'user_id': user_id})
 
-    assign_membership_form = AssignMembershipForm()
 
     if user_id:
         user_data = User.objects.filter(id=user_id).first()

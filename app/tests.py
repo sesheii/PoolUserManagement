@@ -1,6 +1,7 @@
 from rest_framework.test import APITestCase
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
 from rest_framework import status
 from app.models import MembershipType, User, UserMembership, CheckInCheckOut
 from django.test import TestCase, RequestFactory
@@ -47,9 +48,7 @@ class MembershipTypeViewSetTest(APITestCase):
 
 
 class UserViewSetTest(APITestCase):
-
     def setUp(self):
-        # Створення тестових даних
         MembershipType.objects.create(name="Basic", description="Basic Membership", duration=30, price=100.00, start_time="00:00:00", end_time="00:00:00")
         User.objects.create(full_name="Test User", email="testuser@example.com", is_blocked=False)
 
@@ -58,12 +57,14 @@ class UserViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
 
+
     def test_create_user(self):
         data = {
             'full_name': 'New User',
             'email': 'newuser@example.com',
             'is_blocked': False
         }
+        
         response = self.client.post('/users/', data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(User.objects.count(), 2)
@@ -79,6 +80,7 @@ class UserViewSetTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
         self.assertEqual(user.full_name, 'Updated User')
+
 
     def test_delete_user(self):
         user = User.objects.get(email='testuser@example.com')
@@ -105,7 +107,6 @@ class UserMembershipViewSetTest(APITestCase):
     def test_get_user_memberships_for_specific_user(self):
         response = self.client.get(f'/user_memberships/{self.user.id}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # Перевірка, що дані відповідають членствам конкретного користувача
         for membership in response.data:
             self.assertEqual(membership['user'], self.user.id)
 
@@ -124,7 +125,6 @@ class UserMembershipViewSetTest(APITestCase):
 class CheckInCheckOutViewSetTest(APITestCase):
 
     def setUp(self):
-        # Створення тестових даних
         self.user = User.objects.create(full_name="Test User", email="test@example.com", is_blocked=False)
         self.check_in = CheckInCheckOut.objects.create(
             user=self.user, 
@@ -165,51 +165,182 @@ class CheckInCheckOutViewSetTest(APITestCase):
         self.assertEqual(CheckInCheckOut.objects.count(), 0)
 
 
+class ManageMembershipsTest(TestCase):
+    def setUp(self):
+        self.membership_type = MembershipType.objects.create(
+            name="Test Membership", 
+            description="A test membership", 
+            duration=30, 
+            price=50.00, 
+            start_time=timezone.now(), 
+            end_time=timezone.now() + timezone.timedelta(hours=1)
+        )
+
+    def test_add_membership(self):
+        url = reverse('manage-memberships')
+        data = {
+            'name': 'New Membership',
+            'description': 'New membership description',
+            'duration': 15,
+            'price': 100.00,
+            'start_time': timezone.now().time(),
+            'end_time': (timezone.now() + timezone.timedelta(hours=1)).time(),
+        }
+        self.client.post(url, data)
+        self.assertTrue(MembershipType.objects.filter(name='New Membership').exists())
+
+    def test_delete_membership(self):
+        url = reverse('manage-memberships')
+        self.client.post(url, {'delete_membership_id': self.membership_type.id})
+        self.assertFalse(MembershipType.objects.filter(id=self.membership_type.id).exists())
+
+
+class CheckInCheckOutTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(full_name="Test User", email="test@example.com", is_blocked=False)
+        self.membership_type = MembershipType.objects.create(
+            name="Standard Membership",
+            description="Standard Plan",
+            duration=30,
+            price=100.00,
+            start_time=timezone.now(),
+            end_time=timezone.now() + timedelta(hours=1)
+        )
+        UserMembership.objects.create(
+            user=self.user,
+            membership_type=self.membership_type,
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=self.membership_type.duration)
+        )
+
+
+    def test_check_in_user(self):
+        url = reverse('check-in-check-out')
+        self.client.post(url, {'user_id': self.user.id, 'check_in': 'check_in'})
+        self.assertTrue(CheckInCheckOut.objects.filter(user=self.user).exists())
+        session = CheckInCheckOut.objects.get(user=self.user)
+        self.assertIsNone(session.check_out_time)
+
+    def test_check_out_user(self):
+        session = CheckInCheckOut.objects.create(user=self.user, check_in_time=timezone.now())
+        url = reverse('check-in-check-out')
+        self.client.post(url, {'user_id': self.user.id, 'check_out_session': 'check_out', 'session_id': session.id})
+        session.refresh_from_db()
+        self.assertIsNotNone(session.check_out_time)
+
+
+    def test_display_sessions(self):
+        CheckInCheckOut.objects.create(user=self.user, check_in_time=timezone.now())
+        url = reverse('check-in-check-out')
+        response = self.client.post(url, {'user_id': self.user.id})
+
+        self.assertIn('all_sessions', response.context)
+        self.assertEqual(len(response.context['all_sessions']), 1)
+
+
+class RegisterUserTest(TestCase):
+    def test_register_user(self):
+        url = reverse('register-user')
+        user_data = {
+            'full_name': 'Test User',
+            'email': 'testuser@example.com',
+            'is_blocked': False,
+        }
+        response = self.client.post(url, user_data)
+        self.assertTrue(User.objects.filter(email='testuser@example.com').exists())
+        new_user = User.objects.get(email='testuser@example.com')
+        self.assertEqual(self.client.session['user_id'], new_user.id)
+        self.assertRedirects(response, reverse('manage-user-memberships'))
+
+
+class ViewUsersTest(TestCase):
+    def setUp(self):
+        User.objects.create(
+            full_name="John Doe", 
+            email="john@example.com",
+            is_blocked=False
+        )
+        User.objects.create(
+            full_name="sshi user", 
+            email="sshi@example.com",
+            is_blocked=False
+        )
+
+    def test_search_users(self):
+        url = reverse('view-users')
+
+        response = self.client.get(url, {'query': 'John'})
+        users_in_response = response.context['users']
+        self.assertEqual(users_in_response.count(), 1)
+        self.assertEqual(users_in_response.first().full_name, "John Doe")
+
+        response = self.client.get(url, {'query': 'hn@e'})
+        users_in_response = response.context['users']
+        self.assertEqual(users_in_response.count(), 1)
+        self.assertEqual(users_in_response.first().full_name, "John Doe")
+
+        response = self.client.get(url, {'query': 'sshi@example.com'})
+        users_in_response = response.context['users']
+        self.assertEqual(users_in_response.count(), 1)
+        self.assertEqual(users_in_response.first().full_name, "sshi user")
+
+        response = self.client.get(url, {'query': 'ghost'})
+        users_in_response = response.context['users']
+        self.assertEqual(users_in_response.count(), 0)
 
 
 class ManageUserMembershipsTest(TestCase):
     def setUp(self):
-        self.factory = RequestFactory()
-        self.user = User.objects.create(full_name="Test User", email="test@example.com", is_blocked=False)
-        self.membership_type = MembershipType.objects.create(name="Basic", description="Basic Membership", duration=30, price=100.00, start_time="00:00", end_time="00:01:00")
-        self.start_date = timezone.now()
-        self.end_date = self.start_date + timedelta(days=self.membership_type.duration)
-        UserMembership.objects.create(user=self.user, membership_type=self.membership_type, start_date=self.start_date, end_date=self.end_date)
+        self.user = User.objects.create(
+            full_name="Test User", 
+            email="test@example.com", 
+            is_blocked=False
+        )
+        self.membership_type = MembershipType.objects.create(
+            name="Basic", 
+            description="Basic Membership", 
+            duration=30, 
+            price=100.00, 
+            start_time=timezone.now(), 
+            end_time=timezone.now() + timedelta(minutes=1)
+        )
+        self.client.session['user_id'] = self.user.id
+        self.client.session.save()
 
-    def add_session_to_request(self, request):
-        """ Додавання сесії до тестового запиту """
-        middleware = SessionMiddleware()
-        middleware.process_request(request)
-        request.session.save()
+    def test_user_data_not_empty(self):
+        url = reverse('manage-user-memberships')
+        response = self.client.post(url, {'user_id': self.user.id, 'submit_button': 'submit'})
+        self.assertIsNotNone(response.context.get('user_data'))
+        self.assertEqual(response.context.get('user_data').id, self.user.id)
 
-    def test_get_request(self):
-        request = self.factory.get('/manage-user-memberships')
-        request.session = {'user_id': self.user.id}
-        self.add_session_to_request(request)
-        response = manage_user_memberships(request)
-        self.assertEqual(response.status_code, 200)
+    def test_delete_user_membership(self):
+        user_membership = UserMembership.objects.create(
+            user=self.user,
+            membership_type=self.membership_type,
+            start_date=timezone.now(),
+            end_date=timezone.now() + timedelta(days=30)
+        )
 
-    def test_post_request_assign_membership(self):
-        request = self.factory.post('/manage-user-memberships', {
-            'assign_membership': 'assign',
-            'membership_type': self.membership_type.id
-        })
-        request.session = {'user_id': self.user.id}
-        self.add_session_to_request(request)
-        response = manage_user_memberships(request)
-        self.assertEqual(response.status_code, 200)
-        # Перевірте, чи додано нове членство
-
-    def test_post_request_delete_membership(self):
-        user_membership = UserMembership.objects.filter(user=self.user).first()
-        request = self.factory.post('/manage-user-memberships', {
+        url = reverse('manage-user-memberships')
+        session = self.client.session
+        session['user_id'] = self.user.id
+        session.save()
+        self.client.post(url, {
             'delete_membership': 'delete',
             'membership_id': user_membership.id
         })
-        request.session = {'user_id': self.user.id}
-        self.add_session_to_request(request)
-        response = manage_user_memberships(request)
-        self.assertEqual(response.status_code, 200)
-        # Перевірте, чи видалено членство
 
-    # Додайте додаткові тести за необхідності...
+        self.assertFalse(UserMembership.objects.filter(id=user_membership.id).exists())
+        self.assertFalse(UserMembership.objects.filter(id=user_membership.id).exists())
+
+    def test_add_user_membership(self):
+        url = reverse('manage-user-memberships')
+        session = self.client.session
+        session['user_id'] = self.user.id
+        session.save()
+
+        self.client.post(url, {
+            'assign_membership': 'assign',
+            'membership_type': self.membership_type.id
+        })
+        self.assertTrue(UserMembership.objects.filter(user=self.user, membership_type=self.membership_type).exists())
